@@ -1,1 +1,38 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>WinCash</title><style>body{font-family:sans-serif;background:#eef2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}.card{background:#fff;padding:25px;border-radius:16px;text-align:center;width:85%;max-width:350px;box-shadow:0 4px 15px rgba(0,0,0,0.1)}.points{font-size:42px;color:#27ae60;font-weight:bold;margin:15px 0}button{background:#27ae60;color:#fff;border:none;padding:12px;border-radius:8px;font-size:16px;font-weight:bold;width:100%;margin-top:10px;cursor:pointer}input,select{width:90%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box}.withdraw-section{margin-top:20px;border-top:1px solid #eee;padding-top:15px}</style></head><body><div class="card"><h1>تطبيق WinCash 💰</h1><p>رصيد النقاط الحالي</p><div class="points" id="pts">100</div><button onclick="showAd()">مشاهدة الإعلان (+50 نقطة)</button><div class="withdraw-section"><h3>سحب الأرباح 💸</h3><select id="method"><option value="Binance">Binance Pay (USDT)</option><option value="M-Pesa">M-Pesa</option></select><input type="text" id="account" placeholder="رقم المحفظة / الهاتف"><button style="background:#e67e22" onclick="withdraw()">طلب السحب (الحد الأدنى 1000 نقطة)</button></div></div><script>function showAd(){alert("جاري عرض الإعلان...");fetch("/api/add",{method:"POST"}).then(r=>r.json()).then(d=>{document.getElementById("pts").innerText=d.points;alert("تمت إضافة 50 نقطة!")})}function withdraw(){const m=document.getElementById("method").value;const a=document.getElementById("account").value;if(!a){alert("الرجاء إدخال رقم المحفظة أو الحساب");return}fetch("/api/withdraw",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({method:m,account:a})}).then(r=>r.json()).then(d=>{if(d.error){alert(d.error)}else{document.getElementById("pts").innerText=d.points;alert("تم إرسال طلب السحب بنجاح!")}})}</script></body></html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinCash</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-color: #0f172a; --card-bg: #1e293b; --accent-green: #10b981; --accent-orange: #f59e0b; --text-main: #f8fafc; --text-sub: #94a3b8; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 15px; }
+        .app-container { width: 100%; max-width: 420px; background: var(--card-bg); border-radius: 24px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .header { text-align: center; margin-bottom: 24px; }
+        .header h1 { font-size: 28px; font-weight: 900; color: var(--accent-green); }
+        .balance-card { background: linear-gradient(135deg, #059669, #10b981); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; }
+        .balance-card h2 { font-size: 42px; font-weight: 900; margin-top: 5px; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+        .btn-ad { background-color: var(--accent-green); color: #fff; }
+        .btn-withdraw { background-color: var(--accent-orange); color: #fff; }
+        select, input { width: 100%; padding: 14px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header"><h1>💰 WinCash</h1></div>
+    <div class="balance-card">
+        <span>رصيد النقاط</span>
+        <h2 id="points">100</h2>
+    </div>
+    <button class="btn btn-ad" onclick="alert('مشاهدة الإعلان...')">📺 مشاهدة إعلان (+50 نقطة)</button>
+    <div style="color:var(--text-sub); margin:10px 0;">💸 سحب الأرباح</div>
+    <select><option>Binance Pay (USDT)</option></select>
+    <input type="text" placeholder="رقم المحفظة / ID">
+    <button class="btn btn-withdraw" onclick="alert('طلب السحب')">طلب السحب</button>
+</div>
+</body>
+</html>
+
