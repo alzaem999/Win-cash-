@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WinCash</title>
+  <title>WinCash Pro</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -14,23 +14,35 @@
     .header { text-align: center; margin-bottom: 15px; }
     .balance-card { background: linear-gradient(135deg, #10b981, #059669); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px; }
     .balance-card h2 { font-size: 38px; margin-top: 5px; }
-    .section-title { font-size: 16px; font-weight: bold; margin: 15px 0 10px; color: #94a3b8; }
+    .section-title { font-size: 15px; font-weight: bold; margin: 15px 0 10px; color: #94a3b8; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; color: #fff; margin-top: 5px; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; color: #fff; margin-top: 5px; transition: 0.2s; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-green { background-color: #10b981; }
     .btn-blue { background-color: #3b82f6; }
     .btn-purple { background-color: #8b5cf6; }
     .btn-orange { background-color: #f59e0b; }
     .btn-red { background-color: #ef4444; }
+    .btn-dark { background-color: #334155; }
     .card-box { background: #0f172a; border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
     input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; margin-bottom: 10px; outline: none; }
     .hidden { display: none; }
+    
+    /* modal / overlays */
+    .modal { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index: 100; padding: 20px; }
+    .modal-content { background: #1e293b; padding: 20px; border-radius: 20px; text-align: center; width: 100%; max-width: 360px; }
+    
+    /* wheel style */
+    .wheel-container { position: relative; width: 200px; height: 200px; margin: 0 auto 15px; }
+    .wheel { width: 100%; height: 100%; border-radius: 50%; border: 5px solid #f59e0b; transition: transform 4s cubic-bezier(0.15, 0.99, 0.18, 1); background: conic-gradient(#3b82f6 0 90deg, #10b981 90deg 180deg, #8b5cf6 180deg 270deg, #ef4444 270deg 360deg); }
+    .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid #fff; z-index: 10; }
   </style>
 </head>
 <body>
   <div class="app-container">
-    <div class="header"><h1>💰 WinCash</h1></div>
+    <div class="header"><h1>💰 WinCash Pro</h1></div>
 
+    <!-- Auth -->
     <div id="auth-screen" class="card-box">
       <div class="section-title">تسجيل الدخول / إنشاء حساب</div>
       <input type="email" id="email" placeholder="البريد الإلكتروني">
@@ -39,6 +51,7 @@
       <button class="btn btn-green" onclick="handleAuth('register')">إنشاء حساب جديد</button>
     </div>
 
+    <!-- Main -->
     <div id="main-screen" class="hidden">
       <div class="balance-card">
         <span>رصيد النقاط الحالية</span>
@@ -47,10 +60,10 @@
 
       <div class="section-title">⚡ طرق كسب النقاط</div>
       <div class="grid-2">
-        <button class="btn btn-blue" onclick="addPoints(20, 'مكافأة يومية')">📅 مكافأة يومية</button>
-        <button class="btn btn-purple" onclick="spinWheel()">🎡 عجلة الحظ</button>
+        <button class="btn btn-blue" id="daily-btn" onclick="claimDaily()">📅 مكافأة يومية</button>
+        <button class="btn btn-purple" onclick="openWheel()">🎡 عجلة الحظ</button>
       </div>
-      <button class="btn btn-green" style="margin-bottom: 15px;" onclick="watchAd()">📺 مشاهدة إعلان (+50)</button>
+      <button class="btn btn-green" style="margin-bottom: 15px;" onclick="openAdModal()">📺 مشاهدة إعلان (+50)</button>
 
       <div class="section-title">💸 سحب الأرباح</div>
       <div class="card-box">
@@ -60,9 +73,42 @@
           <option>Payeer</option>
         </select>
         <input type="text" id="wallet-id" placeholder="رقم المحفظة / ID السحب">
-        <button class="btn btn-orange" onclick="withdraw()">طلب السحب</button>
+        <button class="btn btn-orange" onclick="withdraw()">طلب السحب (الحد الأدنى 1000)</button>
       </div>
+
+      <button class="btn btn-dark" style="margin-bottom: 10px;" onclick="openAdminModal()">⚙️ لوحة الإدارة (السحوبات)</button>
       <button class="btn btn-red" onclick="logout()">تسجيل الخروج</button>
+    </div>
+  </div>
+
+  <!-- Wheel Modal -->
+  <div id="wheel-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="section-title">🎡 جرب حظك الآن!</div>
+      <div class="wheel-container">
+        <div class="wheel-pointer"></div>
+        <div id="wheel" class="wheel"></div>
+      </div>
+      <button id="spin-btn" class="btn btn-purple" onclick="spinWheel()">تدوير العجلة</button>
+      <button class="btn btn-dark" onclick="closeModal('wheel-modal')">إغلاق</button>
+    </div>
+  </div>
+
+  <!-- Ad Modal -->
+  <div id="ad-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="section-title">📺 جاري مشاهدة الإعلان</div>
+      <p style="margin: 20px 0;">انتظر <b id="ad-timer" style="color:#f59e0b; font-size: 22px;">10</b> ثوانٍ للحصول على +50 نقطة</p>
+      <button id="ad-claim-btn" class="btn btn-green" disabled onclick="claimAdReward()">استلام المكافأة</button>
+    </div>
+  </div>
+
+  <!-- Admin Modal -->
+  <div id="admin-modal" class="modal hidden">
+    <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+      <div class="section-title">📋 طلبات السحب المعلقة</div>
+      <div id="admin-list" style="text-align: right; font-size: 13px;"></div>
+      <button class="btn btn-dark" style="margin-top: 15px;" onclick="closeModal('admin-modal')">إغلاق</button>
     </div>
   </div>
 
@@ -81,7 +127,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     let currentUser = null;
-    let userPoints = 0;
+    let userData = {};
 
     auth.onAuthStateChanged(user => {
       if (user) {
@@ -103,7 +149,7 @@
       if (type === 'register') {
         auth.createUserWithEmailAndPassword(email, pass)
           .then(res => {
-            db.collection('users').doc(res.user.uid).set({ points: 100 });
+            db.collection('users').doc(res.user.uid).set({ points: 100, lastDaily: 0 });
           })
           .catch(err => alert(err.message));
       } else {
@@ -114,44 +160,134 @@
     function loadUserData() {
       db.collection('users').doc(currentUser.uid).onSnapshot(doc => {
         if (doc.exists) {
-          userPoints = doc.data().points || 0;
-          document.getElementById('points').innerText = userPoints;
+          userData = doc.data();
+          document.getElementById('points').innerText = userData.points || 0;
+          
+          // Check daily bonus
+          const now = Date.now();
+          const dailyBtn = document.getElementById('daily-btn');
+          if (userData.lastDaily && (now - userData.lastDaily < 86400000)) {
+            dailyBtn.disabled = true;
+            dailyBtn.innerText = "📅 تم الأخذ اليوم";
+          } else {
+            dailyBtn.disabled = false;
+            dailyBtn.innerText = "📅 مكافأة يومية (+50)";
+          }
         }
       });
     }
 
-    function addPoints(amount, msg) {
-      userPoints += amount;
-      db.collection('users').doc(currentUser.uid).update({ points: userPoints });
-      alert(`تم إضافة +${amount} نقطة (${msg})`);
+    function claimDaily() {
+      const now = Date.now();
+      db.collection('users').doc(currentUser.uid).update({
+        points: (userData.points || 0) + 50,
+        lastDaily: now
+      });
+      alert("تمت إضافة +50 نقطة مكافأة يومية!");
     }
 
+    // Wheel System
+    function openWheel() { document.getElementById('wheel-modal').classList.remove('hidden'); }
     function spinWheel() {
-      const reward = Math.floor(Math.random() * 50) + 10;
-      addPoints(reward, 'عجلة الحظ');
+      const btn = document.getElementById('spin-btn');
+      btn.disabled = true;
+      const wheel = document.getElementById('wheel');
+      const degrees = 1440 + Math.floor(Math.random() * 360);
+      wheel.style.transform = `rotate(${degrees}deg)`;
+      
+      setTimeout(() => {
+        const reward = Math.floor(Math.random() * 40) + 10;
+        db.collection('users').doc(currentUser.uid).update({ points: (userData.points || 0) + reward });
+        alert(`🎉 مبروك! فزت بـ ${reward} نقطة!`);
+        wheel.style.transform = 'rotate(0deg)';
+        btn.disabled = false;
+        closeModal('wheel-modal');
+      }, 4000);
     }
 
-    function watchAd() {
-      addPoints(50, 'مشاهدة إعلان');
+    // Ad System
+    let adInterval;
+    function openAdModal() {
+      document.getElementById('ad-modal').classList.remove('hidden');
+      let timeLeft = 10;
+      const timerEl = document.getElementById('ad-timer');
+      const claimBtn = document.getElementById('ad-claim-btn');
+      claimBtn.disabled = true;
+      timerEl.innerText = timeLeft;
+
+      adInterval = setInterval(() => {
+        timeLeft--;
+        timerEl.innerText = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(adInterval);
+          claimBtn.disabled = false;
+        }
+      }, 1000);
     }
 
+    function claimAdReward() {
+      db.collection('users').doc(currentUser.uid).update({ points: (userData.points || 0) + 50 });
+      alert("تم استلام +50 نقطة!");
+      closeModal('ad-modal');
+    }
+
+    // Withdrawal System
     function withdraw() {
       const wallet = document.getElementById('wallet-id').value;
       if (!wallet) return alert("أدخل رقم المحفظة");
-      if (userPoints < 1000) return alert("الحد الأدنى 1000 نقطة");
+      if ((userData.points || 0) < 1000) return alert("الحد الأدنى للسحب هو 1000 نقطة");
 
       db.collection('withdrawals').add({
         userId: currentUser.uid,
         email: currentUser.email,
         method: document.getElementById('method').value,
         wallet: wallet,
-        points: userPoints,
-        status: 'pending',
-        date: new Date()
+        points: userData.points,
+        status: 'معلق ⏳',
+        date: new Date().toLocaleString('ar-EG')
       }).then(() => {
-        addPoints(-userPoints, 'طلب سحب');
+        db.collection('users').doc(currentUser.uid).update({ points: 0 });
         alert("تم إرسال طلب السحب بنجاح!");
       });
+    }
+
+    // Admin System
+    function openAdminModal() {
+      document.getElementById('admin-modal').classList.remove('hidden');
+      const list = document.getElementById('admin-list');
+      list.innerHTML = "جاري التحميل...";
+
+      db.collection('withdrawals').get().then(snapshot => {
+        list.innerHTML = "";
+        if (snapshot.empty) {
+          list.innerHTML = "<p style='text-align:center;'>لا توجد طلبات سحب حالياً.</p>";
+          return;
+        }
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          list.innerHTML += `
+            <div class="card-box">
+              <p><b>المستخدم:</b> ${data.email}</p>
+              <p><b>المبلغ:</b> ${data.points} نقطة</p>
+              <p><b>الطريقة:</b> ${data.method}</p>
+              <p><b>المحفظة:</b> ${data.wallet}</p>
+              <p><b>الحالة:</b> ${data.status}</p>
+              ${data.status === 'معلق ⏳' ? `<button class="btn btn-green" style="padding:6px; margin-top:5px;" onclick="approveWithdrawal('${doc.id}')">موافقة</button>` : ''}
+            </div><hr style="border-color:#334155; margin:10px 0;">`;
+        });
+      });
+    }
+
+    function approveWithdrawal(id) {
+      db.collection('withdrawals').doc(id).update({ status: 'مكتمل ✅' }).then(() => {
+        alert("تم قبول الطلب بنجاح!");
+        openAdminModal();
+      });
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      if (adInterval) clearInterval(adInterval);
     }
 
     function logout() { auth.signOut(); }
