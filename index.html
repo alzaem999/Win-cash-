@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WinCash</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <style>
     * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
     body { background-color: #0f172a; color: #fff; display: flex; justify-content: center; padding: 15px; }
@@ -11,92 +14,147 @@
     .header { text-align: center; margin-bottom: 15px; }
     .balance-card { background: linear-gradient(135deg, #10b981, #059669); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px; }
     .balance-card h2 { font-size: 38px; margin-top: 5px; }
-    .section-title { font-size: 16px; font-weight: bold; margin: 15px 0 10px; color: #94a3b8; display: flex; align-items: center; gap: 6px; }
+    .section-title { font-size: 16px; font-weight: bold; margin: 15px 0 10px; color: #94a3b8; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn:active { transform: scale(0.98); }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; color: #fff; margin-top: 5px; }
     .btn-green { background-color: #10b981; }
     .btn-blue { background-color: #3b82f6; }
     .btn-purple { background-color: #8b5cf6; }
     .btn-orange { background-color: #f59e0b; }
+    .btn-red { background-color: #ef4444; }
     .card-box { background: #0f172a; border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-    select, input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; margin-bottom: 10px; outline: none; font-size: 14px; }
-    .referral-box { display: flex; gap: 8px; margin-top: 8px; }
-    .referral-code { background: #334155; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; flex: 1; letter-spacing: 2px; }
+    input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; margin-bottom: 10px; outline: none; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
   <div class="app-container">
     <div class="header"><h1>💰 WinCash</h1></div>
-    
-    <div class="balance-card">
-      <span>رصيد النقاط الحالية</span>
-      <h2 id="points">100</h2>
+
+    <div id="auth-screen" class="card-box">
+      <div class="section-title">تسجيل الدخول / إنشاء حساب</div>
+      <input type="email" id="email" placeholder="البريد الإلكتروني">
+      <input type="password" id="password" placeholder="كلمة المرور">
+      <button class="btn btn-blue" onclick="handleAuth('login')">دخول</button>
+      <button class="btn btn-green" onclick="handleAuth('register')">إنشاء حساب جديد</button>
     </div>
 
-    <div class="section-title">⚡ الطرق السريعة لكسب النقاط</div>
-    <div class="grid-2">
-      <button class="btn btn-blue" onclick="dailyCheckIn()">📅 مكافأة يومية (+20)</button>
-      <button class="btn btn-purple" onclick="spinWheel()">🎡 عجلة الحظ</button>
-    </div>
-    <button class="btn btn-green" style="margin-bottom: 15px;" onclick="watchAd()">📺 مشاهدة إعلان (+50 نقطة)</button>
-
-    <div class="section-title">👥 دعوة الأصدقاء (Referral)</div>
-    <div class="card-box">
-      <p style="font-size: 13px; color: #94a3b8;">شارك كودك للحصول على +100 نقطة لكل صديق ينضم:</p>
-      <div class="referral-box">
-        <div class="referral-code">WIN-999</div>
-        <button class="btn btn-blue" style="width: auto; padding: 10px 15px;" onclick="copyCode()">نسخ</button>
+    <div id="main-screen" class="hidden">
+      <div class="balance-card">
+        <span>رصيد النقاط الحالية</span>
+        <h2 id="points">0</h2>
       </div>
-    </div>
 
-    <div class="section-title">💸 سحب الأرباح</div>
-    <div class="card-box">
-      <select id="method">
-        <option>Binance Pay (USDT)</option>
-        <option>M-Pesa</option>
-        <option>Payeer</option>
-      </select>
-      <input type="text" placeholder="رقم المحفظة / ID السحب">
-      <button class="btn btn-orange" onclick="withdraw()">طلب السحب</button>
+      <div class="section-title">⚡ طرق كسب النقاط</div>
+      <div class="grid-2">
+        <button class="btn btn-blue" onclick="addPoints(20, 'مكافأة يومية')">📅 مكافأة يومية</button>
+        <button class="btn btn-purple" onclick="spinWheel()">🎡 عجلة الحظ</button>
+      </div>
+      <button class="btn btn-green" style="margin-bottom: 15px;" onclick="watchAd()">📺 مشاهدة إعلان (+50)</button>
+
+      <div class="section-title">💸 سحب الأرباح</div>
+      <div class="card-box">
+        <select id="method">
+          <option>Binance Pay (USDT)</option>
+          <option>M-Pesa</option>
+          <option>Payeer</option>
+        </select>
+        <input type="text" id="wallet-id" placeholder="رقم المحفظة / ID السحب">
+        <button class="btn btn-orange" onclick="withdraw()">طلب السحب</button>
+      </div>
+      <button class="btn btn-red" onclick="logout()">تسجيل الخروج</button>
     </div>
   </div>
 
   <script>
-    let pts = 100;
-    const ptsEl = document.getElementById('points');
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzYf0qiWDUjbV4REkorvql3sE-O04J2B4",
+      authDomain: "win-cash-74341.firebaseapp.com",
+      projectId: "win-cash-74341",
+      storageBucket: "win-cash-74341.firebasestorage.app",
+      messagingSenderId: "530046711688",
+      appId: "1:530046711688:web:bedf5b67f4c582522ae137",
+      measurementId: "G-CZFRFZBZH0"
+    };
 
-    function watchAd() {
-      pts += 50;
-      ptsEl.innerText = pts;
-      alert("تمت مشاهدة الإعلان وإضافة +50 نقطة!");
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    let currentUser = null;
+    let userPoints = 0;
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+        loadUserData();
+      } else {
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('main-screen').classList.add('hidden');
+      }
+    });
+
+    function handleAuth(type) {
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+      if (!email || !pass) return alert("يرجى إدخال البريد وكلمة المرور");
+
+      if (type === 'register') {
+        auth.createUserWithEmailAndPassword(email, pass)
+          .then(res => {
+            db.collection('users').doc(res.user.uid).set({ points: 100 });
+          })
+          .catch(err => alert(err.message));
+      } else {
+        auth.signInWithEmailAndPassword(email, pass).catch(err => alert(err.message));
+      }
     }
 
-    function dailyCheckIn() {
-      pts += 20;
-      ptsEl.innerText = pts;
-      alert("تم استلام المكافأة اليومية +20 نقطة!");
+    function loadUserData() {
+      db.collection('users').doc(currentUser.uid).onSnapshot(doc => {
+        if (doc.exists) {
+          userPoints = doc.data().points || 0;
+          document.getElementById('points').innerText = userPoints;
+        }
+      });
+    }
+
+    function addPoints(amount, msg) {
+      userPoints += amount;
+      db.collection('users').doc(currentUser.uid).update({ points: userPoints });
+      alert(`تم إضافة +${amount} نقطة (${msg})`);
     }
 
     function spinWheel() {
       const reward = Math.floor(Math.random() * 50) + 10;
-      pts += reward;
-      ptsEl.innerText = pts;
-      alert(`ربحت في عجلة الحظ +${reward} نقطة!`);
+      addPoints(reward, 'عجلة الحظ');
     }
 
-    function copyCode() {
-      navigator.clipboard.writeText("WIN-999");
-      alert("تم نسخ كود الدعوة!");
+    function watchAd() {
+      addPoints(50, 'مشاهدة إعلان');
     }
 
     function withdraw() {
-      if(pts < 1000) {
-        alert("الحد الأدنى للسحب هو 1000 نقطة!");
-      } else {
-        alert("تم ارسال طلب السحب بنجاح!");
-      }
+      const wallet = document.getElementById('wallet-id').value;
+      if (!wallet) return alert("أدخل رقم المحفظة");
+      if (userPoints < 1000) return alert("الحد الأدنى 1000 نقطة");
+
+      db.collection('withdrawals').add({
+        userId: currentUser.uid,
+        email: currentUser.email,
+        method: document.getElementById('method').value,
+        wallet: wallet,
+        points: userPoints,
+        status: 'pending',
+        date: new Date()
+      }).then(() => {
+        addPoints(-userPoints, 'طلب سحب');
+        alert("تم إرسال طلب السحب بنجاح!");
+      });
     }
+
+    function logout() { auth.signOut(); }
   </script>
 </body>
 </html>
