@@ -20,8 +20,8 @@
     .btn-red { background: #ef4444; }
     .btn-dark { background: #334155; }
     input, select { width: 100%; padding: 10px; margin: 5px 0; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 8px; }
-    .hidden { display: none; }
-    .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; }
+    .hidden { display: none !important; }
+    .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; z-index:999; }
     .modal-content { background:#1e293b; padding:20px; border-radius:12px; width:90%; max-width:320px; }
   </style>
 </head>
@@ -148,7 +148,7 @@
     function withdraw() {
       const w = document.getElementById('wallet').value;
       if(!w) return alert("أدخل المحفظة!");
-      if((uData.points||0) < 1000) return alert("تنسحب فقط عند الوصول لـ 1000 نقطة!");
+      if((uData.points||0) < 1000) return alert("الحد الأدنى للسحب هو 1000 نقطة!");
       
       db.collection('withdrawals').add({
         email: user.email,
@@ -168,6 +168,10 @@
       list.innerHTML = "جاري التحميل...";
       db.collection('withdrawals').get().then(snap => {
         list.innerHTML = "";
+        if(snap.empty) {
+          list.innerHTML = "<p>لا توجد طلبات سحب.</p>";
+          return;
+        }
         snap.forEach(d => {
           const data = d.data();
           list.innerHTML += `<div style="border-bottom:1px solid #475569; padding:5px 0;">
