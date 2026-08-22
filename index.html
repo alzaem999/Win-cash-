@@ -24,10 +24,16 @@
     .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:999; }
     .modal-content { background:#1e293b; padding:20px; border-radius:15px; width:90%; max-width:340px; position:relative; }
     
-    /* تصميم عجلة الحظ */
-    .wheel-box { position: relative; width: 220px; height: 220px; margin: 15px auto; }
-    .wheel-pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 22px solid #ef4444; z-index: 10; }
-    .wheel { width: 100%; height: 100%; border-radius: 50%; border: 4px solid #f59e0b; transition: transform 4s cubic-bezier(0.1, 0.9, 0.2, 1); background: conic-gradient(#3b82f6 0deg 90deg, #10b981 90deg 180deg, #8b5cf6 180deg 270deg, #f59e0b 270deg 360deg); position: relative; }
+    /* تصميم عجلة الحظ بالأرقام الجديدة (2, 8, 15, 25) */
+    .wheel-box { position: relative; width: 240px; height: 240px; margin: 15px auto; }
+    .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #ef4444; z-index: 10; }
+    .wheel { 
+      width: 100%; height: 100%; border-radius: 50%; border: 5px solid #f59e0b; 
+      transition: transform 4s cubic-bezier(0.1, 0.9, 0.2, 1); 
+      background: conic-gradient(#3b82f6 0deg 90deg, #10b981 90deg 180deg, #8b5cf6 180deg 270deg, #f59e0b 270deg 360deg); 
+      position: relative; overflow: hidden;
+    }
+    .wheel-section { position: absolute; width: 50%; height: 50%; top: 0; left: 50%; transform-origin: 0% 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
   </style>
 </head>
 <body>
@@ -72,10 +78,15 @@
   <!-- Wheel Modal -->
   <div id="wheel-modal" class="modal hidden">
     <div class="modal-content">
-      <h3>🎡 أدر العجلة وانسخ النقاط!</h3>
+      <h3>🎡 أدر العجلة واربح نقاطاً!</h3>
       <div class="wheel-box">
         <div class="wheel-pointer"></div>
-        <div id="wheel" class="wheel"></div>
+        <div id="wheel" class="wheel">
+          <div class="wheel-section" style="transform: rotate(45deg);">2</div>
+          <div class="wheel-section" style="transform: rotate(135deg);">8</div>
+          <div class="wheel-section" style="transform: rotate(225deg);">15</div>
+          <div class="wheel-section" style="transform: rotate(315deg);">25</div>
+        </div>
       </div>
       <button class="btn btn-purple" id="spin-btn" onclick="spinWheel()">تدوير الآن</button>
       <button class="btn btn-dark" style="margin-top:5px;" onclick="closeModal('wheel-modal')">إغلاق</button>
@@ -150,7 +161,6 @@
       alert("تمت إضافة 50 نقطة!");
     }
 
-    // Wheel System (تدوير العجلة المتحركة)
     function openWheel() { document.getElementById('wheel-modal').classList.remove('hidden'); }
     
     function spinWheel() {
@@ -163,24 +173,26 @@
       wheel.style.transform = `rotate(${currentRotation}deg)`;
 
       setTimeout(() => {
-        const reward = Math.floor(Math.random() * 40) + 10;
-        db.collection('users').doc(user.uid).update({ points: (uData.points||0) + reward });
-        alert(`🎉 مبروك! توقفت العجلة وفزت بـ ${reward} نقطة!`);
+        // الجوائز المحدثة (2, 8, 15, 25)
+        const rewards = [2, 8, 15, 25];
+        const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
+        
+        db.collection('users').doc(user.uid).update({ points: (uData.points||0) + randomReward });
+        alert(`🎉 مبروك! فزت بـ ${randomReward} نقطة!`);
         btn.disabled = false;
         closeModal('wheel-modal');
       }, 4000);
     }
 
-    // Ad System (رابط إعلانات Adsterra الحقيقي)
     function showAd() {
-      alert("سيتم فتح الإعلان، شاهد الإعلان وارجع لتنال +50 نقطة!");
-      // رابط إعلاني مباشر (Direct Link) يربحك أرباح حقيقية
-      window.open('https://www.effectiveratecpm.com/z4b0q53j?key=95188f5f4039e24b4f53ca833b3ca728', '_blank');
-      
-      setTimeout(() => {
-        db.collection('users').doc(user.uid).update({ points: (uData.points||0) + 50 });
-        alert("🎉 شاطر! تمت إضافة +50 نقطة لمشاهدتك الإعلان.");
-      }, 4000);
+      if(confirm("سيتم فتح صفحة الإعلان. شاهد الإعلان ثم عد إلى التطبيق لتحصيل 50 نقطة! هل تريد المتابعة؟")) {
+        window.open('https://www.effectiveratecpm.com/z4b0q53j?key=95188f5f4039e24b4f53ca833b3ca728', '_blank');
+        
+        setTimeout(() => {
+          db.collection('users').doc(user.uid).update({ points: (uData.points||0) + 50 });
+          alert("🎉 شكراً لمشاهدتك الإعلان! تمت إضافة +50 نقطة لرصيدك.");
+        }, 5000);
+      }
     }
 
     function withdraw() {
@@ -196,7 +208,7 @@
         status: 'معلق'
       }).then(() => {
         db.collection('users').doc(user.uid).update({ points: 0 });
-        alert("تم إرسال الطلب بنجاح!");
+        alert("تم إرسال طلب السحب بنجاح!");
       });
     }
 
