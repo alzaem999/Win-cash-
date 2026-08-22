@@ -1,38 +1,102 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WinCash</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root { --bg-color: #0f172a; --card-bg: #1e293b; --accent-green: #10b981; --accent-orange: #f59e0b; --text-main: #f8fafc; --text-sub: #94a3b8; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 15px; }
-        .app-container { width: 100%; max-width: 420px; background: var(--card-bg); border-radius: 24px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .header { text-align: center; margin-bottom: 24px; }
-        .header h1 { font-size: 28px; font-weight: 900; color: var(--accent-green); }
-        .balance-card { background: linear-gradient(135deg, #059669, #10b981); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; }
-        .balance-card h2 { font-size: 42px; font-weight: 900; margin-top: 5px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-        .btn-ad { background-color: var(--accent-green); color: #fff; }
-        .btn-withdraw { background-color: var(--accent-orange); color: #fff; }
-        select, input { width: 100%; padding: 14px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; margin-bottom: 10px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WinCash</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #0f172a; color: #fff; display: flex; justify-content: center; padding: 15px; }
+    .app-container { width: 100%; max-width: 420px; background: #1e293b; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .header { text-align: center; margin-bottom: 15px; }
+    .balance-card { background: linear-gradient(135deg, #10b981, #059669); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px; }
+    .balance-card h2 { font-size: 38px; margin-top: 5px; }
+    .section-title { font-size: 16px; font-weight: bold; margin: 15px 0 10px; color: #94a3b8; display: flex; align-items: center; gap: 6px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:active { transform: scale(0.98); }
+    .btn-green { background-color: #10b981; }
+    .btn-blue { background-color: #3b82f6; }
+    .btn-purple { background-color: #8b5cf6; }
+    .btn-orange { background-color: #f59e0b; }
+    .card-box { background: #0f172a; border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+    select, input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; margin-bottom: 10px; outline: none; font-size: 14px; }
+    .referral-box { display: flex; gap: 8px; margin-top: 8px; }
+    .referral-code { background: #334155; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; flex: 1; letter-spacing: 2px; }
+  </style>
 </head>
 <body>
-<div class="app-container">
+  <div class="app-container">
     <div class="header"><h1>💰 WinCash</h1></div>
+    
     <div class="balance-card">
-        <span>رصيد النقاط</span>
-        <h2 id="points">100</h2>
+      <span>رصيد النقاط الحالية</span>
+      <h2 id="points">100</h2>
     </div>
-    <button class="btn btn-ad" onclick="alert('مشاهدة الإعلان...')">📺 مشاهدة إعلان (+50 نقطة)</button>
-    <div style="color:var(--text-sub); margin:10px 0;">💸 سحب الأرباح</div>
-    <select><option>Binance Pay (USDT)</option></select>
-    <input type="text" placeholder="رقم المحفظة / ID">
-    <button class="btn btn-withdraw" onclick="alert('طلب السحب')">طلب السحب</button>
-</div>
+
+    <div class="section-title">⚡ الطرق السريعة لكسب النقاط</div>
+    <div class="grid-2">
+      <button class="btn btn-blue" onclick="dailyCheckIn()">📅 مكافأة يومية (+20)</button>
+      <button class="btn btn-purple" onclick="spinWheel()">🎡 عجلة الحظ</button>
+    </div>
+    <button class="btn btn-green" style="margin-bottom: 15px;" onclick="watchAd()">📺 مشاهدة إعلان (+50 نقطة)</button>
+
+    <div class="section-title">👥 دعوة الأصدقاء (Referral)</div>
+    <div class="card-box">
+      <p style="font-size: 13px; color: #94a3b8;">شارك كودك للحصول على +100 نقطة لكل صديق ينضم:</p>
+      <div class="referral-box">
+        <div class="referral-code">WIN-999</div>
+        <button class="btn btn-blue" style="width: auto; padding: 10px 15px;" onclick="copyCode()">نسخ</button>
+      </div>
+    </div>
+
+    <div class="section-title">💸 سحب الأرباح</div>
+    <div class="card-box">
+      <select id="method">
+        <option>Binance Pay (USDT)</option>
+        <option>M-Pesa</option>
+        <option>Payeer</option>
+      </select>
+      <input type="text" placeholder="رقم المحفظة / ID السحب">
+      <button class="btn btn-orange" onclick="withdraw()">طلب السحب</button>
+    </div>
+  </div>
+
+  <script>
+    let pts = 100;
+    const ptsEl = document.getElementById('points');
+
+    function watchAd() {
+      pts += 50;
+      ptsEl.innerText = pts;
+      alert("تمت مشاهدة الإعلان وإضافة +50 نقطة!");
+    }
+
+    function dailyCheckIn() {
+      pts += 20;
+      ptsEl.innerText = pts;
+      alert("تم استلام المكافأة اليومية +20 نقطة!");
+    }
+
+    function spinWheel() {
+      const reward = Math.floor(Math.random() * 50) + 10;
+      pts += reward;
+      ptsEl.innerText = pts;
+      alert(`ربحت في عجلة الحظ +${reward} نقطة!`);
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText("WIN-999");
+      alert("تم نسخ كود الدعوة!");
+    }
+
+    function withdraw() {
+      if(pts < 1000) {
+        alert("الحد الأدنى للسحب هو 1000 نقطة!");
+      } else {
+        alert("تم ارسال طلب السحب بنجاح!");
+      }
+    }
+  </script>
 </body>
 </html>
-
