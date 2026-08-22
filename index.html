@@ -27,12 +27,8 @@
     .card-box { background: #0f172a; border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
     input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; margin-bottom: 10px; outline: none; }
     .hidden { display: none; }
-    
-    /* modal / overlays */
     .modal { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index: 100; padding: 20px; }
     .modal-content { background: #1e293b; padding: 20px; border-radius: 20px; text-align: center; width: 100%; max-width: 360px; }
-    
-    /* wheel style */
     .wheel-container { position: relative; width: 200px; height: 200px; margin: 0 auto 15px; }
     .wheel { width: 100%; height: 100%; border-radius: 50%; border: 5px solid #f59e0b; transition: transform 4s cubic-bezier(0.15, 0.99, 0.18, 1); background: conic-gradient(#3b82f6 0 90deg, #10b981 90deg 180deg, #8b5cf6 180deg 270deg, #ef4444 270deg 360deg); }
     .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid #fff; z-index: 10; }
@@ -42,7 +38,6 @@
   <div class="app-container">
     <div class="header"><h1>💰 WinCash Pro</h1></div>
 
-    <!-- Auth -->
     <div id="auth-screen" class="card-box">
       <div class="section-title">تسجيل الدخول / إنشاء حساب</div>
       <input type="email" id="email" placeholder="البريد الإلكتروني">
@@ -51,7 +46,6 @@
       <button class="btn btn-green" onclick="handleAuth('register')">إنشاء حساب جديد</button>
     </div>
 
-    <!-- Main -->
     <div id="main-screen" class="hidden">
       <div class="balance-card">
         <span>رصيد النقاط الحالية</span>
@@ -81,7 +75,6 @@
     </div>
   </div>
 
-  <!-- Wheel Modal -->
   <div id="wheel-modal" class="modal hidden">
     <div class="modal-content">
       <div class="section-title">🎡 جرب حظك الآن!</div>
@@ -90,20 +83,19 @@
         <div id="wheel" class="wheel"></div>
       </div>
       <button id="spin-btn" class="btn btn-purple" onclick="spinWheel()">تدوير العجلة</button>
-      <button class="btn btn-dark" onclick="closeModal('wheel-modal')">إغلاق</button>
+      <button class="btn btn-dark" style="margin-top:10px;" onclick="closeModal('wheel-modal')">إغلاق</button>
     </div>
   </div>
 
-  <!-- Ad Modal -->
   <div id="ad-modal" class="modal hidden">
     <div class="modal-content">
       <div class="section-title">📺 جاري مشاهدة الإعلان</div>
       <p style="margin: 20px 0;">انتظر <b id="ad-timer" style="color:#f59e0b; font-size: 22px;">10</b> ثوانٍ للحصول على +50 نقطة</p>
       <button id="ad-claim-btn" class="btn btn-green" disabled onclick="claimAdReward()">استلام المكافأة</button>
+      <button class="btn btn-dark" style="margin-top:10px;" onclick="closeModal('ad-modal')">إغلاق</button>
     </div>
   </div>
 
-  <!-- Admin Modal -->
   <div id="admin-modal" class="modal hidden">
     <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
       <div class="section-title">📋 طلبات السحب المعلقة</div>
@@ -163,7 +155,6 @@
           userData = doc.data();
           document.getElementById('points').innerText = userData.points || 0;
           
-          // Check daily bonus
           const now = Date.now();
           const dailyBtn = document.getElementById('daily-btn');
           if (userData.lastDaily && (now - userData.lastDaily < 86400000)) {
@@ -186,7 +177,6 @@
       alert("تمت إضافة +50 نقطة مكافأة يومية!");
     }
 
-    // Wheel System
     function openWheel() { document.getElementById('wheel-modal').classList.remove('hidden'); }
     function spinWheel() {
       const btn = document.getElementById('spin-btn');
@@ -205,7 +195,6 @@
       }, 4000);
     }
 
-    // Ad System
     let adInterval;
     function openAdModal() {
       document.getElementById('ad-modal').classList.remove('hidden');
@@ -231,7 +220,6 @@
       closeModal('ad-modal');
     }
 
-    // Withdrawal System
     function withdraw() {
       const wallet = document.getElementById('wallet-id').value;
       if (!wallet) return alert("أدخل رقم المحفظة");
@@ -251,7 +239,6 @@
       });
     }
 
-    // Admin System
     function openAdminModal() {
       document.getElementById('admin-modal').classList.remove('hidden');
       const list = document.getElementById('admin-list');
