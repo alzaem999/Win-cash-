@@ -9,9 +9,10 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <style>
     * { box-sizing: border-box; font-family: system-ui, sans-serif; margin: 0; padding: 0; }
-    body { background: #0f172a; color: #fff; display: flex; justify-content: center; padding: 15px; }
+    body { background: #0f172a; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 15px; min-height: 100vh; }
     .container { width: 100%; max-width: 400px; background: #1e293b; padding: 20px; border-radius: 15px; text-align: center; }
     .card { background: linear-gradient(135deg, #10b981, #059669); padding: 15px; border-radius: 12px; margin: 15px 0; }
+    .ref-card { background: #334155; padding: 12px; border-radius: 10px; margin: 10px 0; border: 1px dashed #10b981; }
     .btn { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: #fff; font-size: 15px; }
     .btn-blue { background: #3b82f6; }
     .btn-green { background: #10b981; }
@@ -24,7 +25,10 @@
     .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:999; }
     .modal-content { background:#1e293b; padding:20px; border-radius:15px; width:90%; max-width:340px; position:relative; }
     
-    /* تصميم عجلة الحظ بالأرقام الجديدة (2, 8, 15, 25) */
+    /* مكان شريط الإعلان */
+    .ad-banner-box { width: 100%; max-width: 400px; margin: 10px 0; text-align: center; background: #1e293b; border-radius: 8px; padding: 5px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+
+    /* تصميم عجلة الحظ */
     .wheel-box { position: relative; width: 240px; height: 240px; margin: 15px auto; }
     .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #ef4444; z-index: 10; }
     .wheel { 
@@ -37,6 +41,13 @@
   </style>
 </head>
 <body>
+
+  <!-- إعلان البنر الأعلى (مكان إعلان Adsterra Banner) -->
+  <div class="ad-banner-box" id="top-banner">
+    <!-- يمكنك وضع كود البنر الخاص بـ Adsterra هنا مستقبلاً -->
+    <span style="color:#64748b; font-size:12px;">مساحة إعلانية (Adsterra Banner)</span>
+  </div>
+
   <div class="container">
     <h2>💰 WinCash Pro</h2>
 
@@ -45,8 +56,9 @@
       <h3 style="margin:10px 0;">تسجيل الدخول / حساب جديد</h3>
       <input type="email" id="email" placeholder="البريد الإلكتروني">
       <input type="password" id="password" placeholder="كلمة المرور">
+      <input type="text" id="ref-code-input" placeholder="كود الدعوة (اختياري للحصول على +50 نقطة)">
       <button class="btn btn-blue" onclick="login()">دخول</button>
-      <button class="btn btn-green" onclick="register()">إنشاء حساب</button>
+      <button class="btn btn-green" onclick="register()">إنشاء حساب جديد</button>
     </div>
 
     <!-- Main -->
@@ -54,6 +66,13 @@
       <div class="card">
         <span>رصيد النقاط الحالية</span>
         <h1 id="points">0</h1>
+      </div>
+
+      <!-- نظام الدعوات والإحالة -->
+      <div class="ref-card">
+        <p style="font-size:13px; color:#cbd5e1;">👥 كود الدعوة الخاص بك (شاركه واربح +50 نقطة):</p>
+        <h3 id="my-ref-code" style="color:#10b981; margin:5px 0;">---</h3>
+        <button class="btn btn-dark" style="padding:6px; font-size:12px;" onclick="shareRefLink()">📲 مشاركة رابط الدعوة</button>
       </div>
 
       <button class="btn btn-blue" onclick="claimDaily()">📅 مكافأة يومية (+50)</button>
@@ -70,7 +89,10 @@
       <button class="btn btn-orange" onclick="withdraw()">طلب السحب (الحد الأدنى 1000)</button>
 
       <hr style="margin:15px 0; border-color:#334155;">
-      <button class="btn btn-dark" onclick="openAdmin()">⚙️ لوحة الأدمن (السحوبات)</button>
+      
+      <!-- زر الأدمن الخاص بـ alzae999m.com@gmail.com فقط -->
+      <button id="admin-btn" class="btn btn-dark hidden" onclick="openAdmin()">⚙️ لوحة الأدمن (السحوبات)</button>
+      
       <button class="btn btn-red" onclick="logout()">تسجيل الخروج</button>
     </div>
   </div>
@@ -93,16 +115,18 @@
     </div>
   </div>
 
-  <!-- Admin Modal -->
+  <!-- Admin Modal (محمي) -->
   <div id="admin-modal" class="modal hidden">
     <div class="modal-content">
-      <h3>📋 طلبات السحب</h3>
-      <div id="admin-list" style="margin:10px 0; text-align:right; max-height:200px; overflow-y:auto;"></div>
+      <h3>📋 طلبات السحب (خاص بالأدمن)</h3>
+      <div id="admin-list" style="margin:10px 0; text-align:right; max-height:250px; overflow-y:auto;"></div>
       <button class="btn btn-dark" onclick="closeModal('admin-modal')">إغلاق</button>
     </div>
   </div>
 
   <script>
+    const ADMIN_EMAIL = "alzae999m.com@gmail.com"; // البريد المحمي للأدمن
+
     const firebaseConfig = {
       apiKey: "AIzaSyBzYf0qiWDUjbV4REkorvqld30L6mh3_o8",
       authDomain: "win-cash-74341.firebaseapp.com",
@@ -124,6 +148,14 @@
         user = u;
         document.getElementById('auth-box').classList.add('hidden');
         document.getElementById('main-box').classList.remove('hidden');
+
+        // التتحقق إذا كان المستخدم هو الأدمن لإظهار لوحة التحكم
+        if (user.email === ADMIN_EMAIL) {
+          document.getElementById('admin-btn').classList.remove('hidden');
+        } else {
+          document.getElementById('admin-btn').classList.add('hidden');
+        }
+
         loadData();
       } else {
         document.getElementById('auth-box').classList.remove('hidden');
@@ -134,8 +166,33 @@
     function register() {
       const e = document.getElementById('email').value;
       const p = document.getElementById('password').value;
+      const refInput = document.getElementById('ref-code-input').value.trim();
+      
+      if(!e || !p) return alert("الرجاء إدخال البريد وكلمة المرور!");
+
       auth.createUserWithEmailAndPassword(e, p).then(r => {
-        db.collection('users').doc(r.user.uid).set({ points: 100, lastDaily: 0 });
+        const myRef = "WIN" + Math.floor(10000 + Math.random() * 90000);
+        let startPoints = 100;
+
+        // إذا تم إدخال كود دعوة صحيح
+        if (refInput) {
+          startPoints += 50; // مكافأة للمسجل الجديد
+          // مكافأة الشخص صاحب كود الدعوة
+          db.collection('users').where('refCode', '==', refInput).get().then(snap => {
+            if(!snap.empty) {
+              const referrer = snap.docs[0];
+              db.collection('users').doc(referrer.id).update({
+                points: (referrer.data().points || 0) + 50
+              });
+            }
+          });
+        }
+
+        db.collection('users').doc(r.user.uid).set({ 
+          points: startPoints, 
+          lastDaily: 0,
+          refCode: myRef
+        });
       }).catch(err => alert(err.message));
     }
 
@@ -150,8 +207,20 @@
         if(doc.exists) {
           uData = doc.data();
           document.getElementById('points').innerText = uData.points || 0;
+          document.getElementById('my-ref-code').innerText = uData.refCode || "WIN12345";
         }
       });
+    }
+
+    function shareRefLink() {
+      const code = uData.refCode || "";
+      const text = `انضم إلى تطبيق WinCash Pro واكسب المال! استخدم كود الدعوة الخاص بي (${code}) لتحصل على 50 نقطة مجانية عند التسجيل: ${window.location.href}`;
+      if (navigator.share) {
+        navigator.share({ title: 'WinCash Pro', text: text });
+      } else {
+        navigator.clipboard.writeText(text);
+        alert("تم نسخ رابط وكود الدعوة بنجاح!");
+      }
     }
 
     function claimDaily() {
@@ -173,7 +242,6 @@
       wheel.style.transform = `rotate(${currentRotation}deg)`;
 
       setTimeout(() => {
-        // الجوائز المحدثة (2, 8, 15, 25)
         const rewards = [2, 8, 15, 25];
         const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
         
@@ -213,21 +281,23 @@
     }
 
     function openAdmin() {
+      if (user.email !== ADMIN_EMAIL) return alert("غير مصرح لك بالدخول!");
+      
       document.getElementById('admin-modal').classList.remove('hidden');
       const list = document.getElementById('admin-list');
       list.innerHTML = "جاري التحميل...";
       db.collection('withdrawals').get().then(snap => {
         list.innerHTML = "";
         if(snap.empty) {
-          list.innerHTML = "<p>لا توجد طلبات سحب.</p>";
+          list.innerHTML = "<p>لا توجد طلبات سحب حالياً.</p>";
           return;
         }
         snap.forEach(d => {
           const data = d.data();
-          list.innerHTML += `<div style="border-bottom:1px solid #475569; padding:5px 0;">
-            <p><b>${data.email}</b></p>
-            <p>${data.points} نقطة - ${data.method}</p>
-            <p>المحفظة: ${data.wallet}</p>
+          list.innerHTML += `<div style="border-bottom:1px solid #475569; padding:8px 0;">
+            <p>📧 <b>${data.email}</b></p>
+            <p>💰 ${data.points} نقطة - ${data.method}</p>
+            <p>💳 المحفظة: ${data.wallet}</p>
           </div>`;
         });
       });
