@@ -7,6 +7,10 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <!-- الإعلان الثاني: Social Bar (شريط تفاعلي عائم) -->
+  <script src="https://pl30981648.profitableratecpmnetwork.com/35/50/05/355005c9c4114d1f559a5931a65bdb39.js"></script>
+
   <style>
     * { box-sizing: border-box; font-family: system-ui, sans-serif; margin: 0; padding: 0; }
     body { background: #0f172a; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 15px; min-height: 100vh; }
@@ -25,8 +29,8 @@
     .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:999; }
     .modal-content { background:#1e293b; padding:20px; border-radius:15px; width:90%; max-width:340px; position:relative; }
     
-    /* مكان شريط الإعلان */
-    .ad-banner-box { width: 100%; max-width: 400px; margin: 10px 0; text-align: center; background: #1e293b; border-radius: 8px; padding: 5px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+    /* مكان شريط الإعلان الأول */
+    .ad-banner-box { width: 100%; max-width: 400px; margin: 10px 0; text-align: center; background: #1e293b; border-radius: 8px; padding: 5px; min-height: 60px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
     /* تصميم عجلة الحظ */
     .wheel-box { position: relative; width: 240px; height: 240px; margin: 15px auto; }
@@ -42,10 +46,18 @@
 </head>
 <body>
 
-  <!-- إعلان البنر الأعلى (مكان إعلان Adsterra Banner) -->
+  <!-- الإعلان الأول: Adsterra Banner 320x50 -->
   <div class="ad-banner-box" id="top-banner">
-    <!-- يمكنك وضع كود البنر الخاص بـ Adsterra هنا مستقبلاً -->
-    <span style="color:#64748b; font-size:12px;">مساحة إعلانية (Adsterra Banner)</span>
+    <script type="text/javascript">
+      atOptions = {
+        'key' : 'fd8524af6d1c4eefc47c8cc422ddc34f',
+        'format' : 'iframe',
+        'height' : 50,
+        'width' : 320,
+        'params' : {}
+      };
+    </script>
+    <script type="text/javascript" src="https://www.highrevenueformat.com/fd8524af6d1c4eefc47c8cc422ddc34f/invoke.js"></script>
   </div>
 
   <div class="container">
@@ -125,7 +137,7 @@
   </div>
 
   <script>
-    const ADMIN_EMAIL = "alzae999m.com@gmail.com"; // البريد المحمي للأدمن
+    const ADMIN_EMAIL = "alzae999m.com@gmail.com";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBzYf0qiWDUjbV4REkorvqld30L6mh3_o8",
@@ -149,7 +161,6 @@
         document.getElementById('auth-box').classList.add('hidden');
         document.getElementById('main-box').classList.remove('hidden');
 
-        // التتحقق إذا كان المستخدم هو الأدمن لإظهار لوحة التحكم
         if (user.email === ADMIN_EMAIL) {
           document.getElementById('admin-btn').classList.remove('hidden');
         } else {
@@ -174,10 +185,8 @@
         const myRef = "WIN" + Math.floor(10000 + Math.random() * 90000);
         let startPoints = 100;
 
-        // إذا تم إدخال كود دعوة صحيح
         if (refInput) {
-          startPoints += 50; // مكافأة للمسجل الجديد
-          // مكافأة الشخص صاحب كود الدعوة
+          startPoints += 50;
           db.collection('users').where('refCode', '==', refInput).get().then(snap => {
             if(!snap.empty) {
               const referrer = snap.docs[0];
