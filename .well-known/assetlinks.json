@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.alzaem999.twa",
+        "sha256_cert_fingerprints": ["F5:52:2C:85:F1:7C:23:E9:32:F9:7D:6F:F4:99:4D:BA:C3:12:9E:81:F5:8C:D6:BC:FF:78:78:91:6B:03:5E:6C"]
+      }
+    }]
